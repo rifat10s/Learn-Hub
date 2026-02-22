@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(s){s.dataset.zone='10581661',s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LearnHub Premium</title>
@@ -12,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     <style>
         :root {
             --bg: #f0fdf4;
@@ -49,12 +49,12 @@
         }
 
         body {
-            font-family: var(--font-en); /* Uses dynamic font */
+            font-family: var(--font-en);
             background: var(--dynamic-bg);
             color: var(--fg);
             min-height: 100vh;
             overflow-x: hidden;
-            transition: background 0.4s ease, color 0.4s ease;
+            transition: background 0.3s ease, color 0.3s ease;
         }
         
         body.lang-bn {
@@ -414,6 +414,7 @@
             font-size: 0.875rem;
             opacity: 0.9;
             position: relative;
+            word-break: break-all;
         }
 
         .menu-item {
@@ -598,6 +599,7 @@
             z-index: 50;
             box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
             transition: opacity 0.3s ease, visibility 0.3s ease;
+            cursor: pointer;
         }
 
         .announcement-bar.hidden {
@@ -654,9 +656,187 @@
             100% { transform: translateX(-100%); }
         }
 
+        /* Promo Banner */
+        .promo-banner {
+            margin-bottom: 25px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            background-color: var(--dynamic-card);
+            display: none; /* Hidden by default */
+        }
+
+        .promo-banner.active {
+            display: block;
+        }
+
+        .promo-banner:active {
+            transform: scale(0.98);
+        }
+
+        .promo-banner-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .promo-banner-content {
+            padding: 15px 20px;
+        }
+
+        .promo-banner-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--fg);
+        }
+
+        body.dark-theme .promo-banner-title {
+            color: var(--fg-light);
+        }
+
+        /* Popup Promotion Banner */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-banner {
+            width: 90%;
+            max-width: 400px;
+            background: var(--dynamic-card);
+            border-radius: 24px;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-overlay.active .popup-banner {
+            transform: scale(1);
+        }
+
+        .popup-banner img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .popup-content {
+            padding: 20px;
+            position: relative;
+        }
+
+        .popup-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--fg);
+        }
+
+        body.dark-theme .popup-title {
+            color: var(--fg-light);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .popup-close:active {
+            transform: scale(0.9);
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--dynamic-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 90;
+            transition: all 0.3s ease;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        body.dark-theme .bottom-nav {
+            background: var(--card-dark);
+            border-top-color: var(--border-dark);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--muted);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 8px;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-item.active {
+            color: var(--dynamic-accent);
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .nav-item span {
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
         .main-content {
             margin-top: 118px;
-            padding: 30px 20px 100px;
+            padding: 30px 20px 90px;
             position: relative;
             z-index: 1;
             transition: margin-top 0.3s ease;
@@ -732,11 +912,13 @@
             transform: scale(0.97);
         }
 
+        /* FIX: Course Thumbnail Frame */
         .course-thumbnail {
             width: 100%;
             height: 160px;
             object-fit: cover;
             transition: transform 0.5s ease;
+            display: block;
         }
 
         @media (max-width: 768px) {
@@ -748,6 +930,14 @@
         .course-thumbnail-wrapper {
             overflow: hidden;
             position: relative;
+            width: 100%;
+            height: 160px;
+        }
+
+        @media (max-width: 768px) {
+            .course-thumbnail-wrapper {
+                height: 110px;
+            }
         }
 
         .course-info {
@@ -768,15 +958,34 @@
             line-height: 1.3;
         }
 
+        /* FIX: Dark Mode Text Visibility */
+        body.dark-theme .course-title,
+        body.dark-theme .stat-value,
+        body.dark-theme .setting-label,
+        body.dark-theme .notification-text,
+        body.dark-theme .form-label,
+        body.dark-theme .payment-instruction,
+        body.dark-theme .menu-item span,
+        body.dark-theme .category-item span {
+            color: var(--fg-light) !important;
+        }
+
+        body.light-theme .course-title,
+        body.light-theme .stat-value,
+        body.light-theme .setting-label,
+        body.light-theme .notification-text,
+        body.light-theme .form-label,
+        body.light-theme .payment-instruction,
+        body.light-theme .menu-item span,
+        body.light-theme .category-item span {
+            color: var(--fg) !important;
+        }
+
         @media (max-width: 768px) {
             .course-title {
                 font-size: 0.85rem;
                 line-height: 1.2;
             }
-        }
-
-        body.dark-theme .course-title {
-            color: var(--fg-light);
         }
 
         /* iOS Full Screen Course View */
@@ -807,12 +1016,15 @@
             position: relative;
             height: 300px;
             flex-shrink: 0;
+            overflow: hidden;
+            background-color: var(--card-dark);
         }
 
         .course-fs-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .course-fs-back {
@@ -862,6 +1074,10 @@
             line-height: 1.8;
             margin-bottom: 25px;
             flex: 1;
+        }
+        
+        body.dark-theme .course-fs-desc {
+            color: #a7f3d0;
         }
 
         .course-fs-price {
@@ -1037,6 +1253,7 @@
         /* Form Groups */
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         .form-label {
@@ -1076,6 +1293,58 @@
 
         .form-input::placeholder {
             color: var(--muted);
+        }
+
+        /* Password Input with Eye Icon */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--dynamic-accent);
+        }
+
+        .password-toggle svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Forgot Password Link */
+        .forgot-password {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .forgot-password a {
+            color: var(--dynamic-accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
         }
 
         /* Profile Card */
@@ -1127,10 +1396,6 @@
             color: var(--dynamic-accent-dark);
         }
 
-        body.dark-theme .stat-value {
-            color: var(--accent-glow);
-        }
-
         .stat-label {
             font-size: 0.85rem;
             color: var(--muted);
@@ -1175,10 +1440,6 @@
             color: var(--fg);
         }
 
-        body.dark-theme .notification-text {
-            color: var(--fg-light);
-        }
-
         .notification-time {
             font-size: 0.75rem;
             color: var(--muted);
@@ -1197,6 +1458,11 @@
 
         .setting-label {
             font-weight: 600;
+            color: var(--fg);
+        }
+        
+        body.dark-theme .setting-label {
+            color: var(--fg-light);
         }
 
         .theme-selector {
@@ -1422,115 +1688,6 @@
             display: block;
         }
 
-        /* Promo Popup Styles */
-        .promo-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            z-index: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s ease;
-        }
-
-        .promo-popup-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .promo-popup-card {
-            background: var(--dynamic-card);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 400px;
-            overflow: hidden;
-            transform: scale(0.9);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .promo-popup-overlay.active .promo-popup-card {
-            transform: scale(1);
-        }
-
-        body.dark-theme .promo-popup-card {
-            background: var(--card-dark);
-        }
-
-        .promo-popup-close {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 36px;
-            height: 36px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            border: none;
-            cursor: pointer;
-            z-index: 10;
-            font-weight: bold;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-
-        .promo-popup-close:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .promo-popup-close:hover:not(:disabled) {
-            background: rgba(0, 0, 0, 0.6);
-            transform: scale(1.1);
-        }
-
-        .promo-popup-img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .promo-popup-body {
-            padding: 25px;
-            text-align: center;
-        }
-
-        .promo-popup-title {
-            font-size: 1.25rem;
-            margin-bottom: 20px;
-            color: var(--fg);
-            font-weight: 700;
-        }
-
-        body.dark-theme .promo-popup-title {
-            color: var(--fg-light);
-        }
-
-        .promo-popup-timer {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
         /* Toast */
         .toast {
             position: fixed;
@@ -1636,6 +1793,22 @@
     <div class="bg-pattern"></div>
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
+
+    <!-- Popup Promotion Banner -->
+    <div class="popup-overlay" id="popupPromo">
+        <div class="popup-banner">
+            <img src="" alt="Promotion" id="popupPromoImg">
+            <div class="popup-content">
+                <h3 class="popup-title" id="popupPromoTitle"></h3>
+                <button class="popup-close" onclick="closePopupPromo()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="header">
@@ -1747,72 +1920,112 @@
     <main class="main-content" id="mainContent">
         <!-- Home Page -->
         <section id="homePage">
+            <!-- Promotion Banner (Inline) -->
+            <div class="promo-banner" id="promoBanner" onclick="handlePromoClick()">
+                <img src="" alt="Promotion" class="promo-banner-img" id="promoBannerImg">
+                <div class="promo-banner-content">
+                    <h3 class="promo-banner-title" id="promoBannerTitle"></h3>
+                </div>
+            </div>
+
             <div class="section-header">
                 <h2 class="section-title" data-lang="allCourses">All Courses</h2>
             </div>
             <div class="course-grid" id="courseGrid"></div>
         </section>
 
-        <!-- Profile Page -->
+        <!-- Wallet Page (Separate from Profile) -->
+        <section id="walletPage" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title" data-lang="wallet">My Wallet</h2>
+            </div>
+            <div class="profile-card">
+                <div class="text-center mb-6">
+                    <div class="stat-icon mx-auto mb-4">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2" data-lang="currentBalance">Current Balance</h3>
+                    <div class="text-4xl font-bold text-accent" id="walletPageBalance">0 BDT</div>
+                </div>
+                
+                <div class="border-t pt-6 mt-4">
+                    <h3 class="text-xl font-bold mb-4" data-lang="addMoney">Add Money to Wallet</h3>
+                    <button class="btn btn-primary" onclick="openPaymentModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        <span data-lang="addMoneyBtn">Add Money</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Page (Separate from Wallet) -->
         <section id="profilePage" style="display: none;">
             <div class="section-header">
                 <h2 class="section-title" data-lang="myProfile">My Profile</h2>
             </div>
+            
+            <!-- Profile Info Only -->
             <div class="profile-card">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="stat-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold" id="profilePageName">Not set</h3>
+                        <p class="text-sm text-muted" id="profilePageEmail">Not set</p>
+                    </div>
+                </div>
+
                 <div class="stat-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
                         </div>
-                        <div class="stat-value" id="downloadCount">0</div>
-                        <div class="stat-label" data-lang="downloads">Downloads</div>
-                    </div>
-                    <div class="stat-card">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="1" y="4" width="22" height="16" rx="2 ry="2"></rect>
-                            <line x1="1" y1="10" x2="23" y2="10"></line>
-                        </svg>
-                        <div class="stat-value" id="walletBalance">0</div>
-                        <div class="stat-label" data-lang="walletBalance">Wallet Balance</div>
+                        <div class="stat-value" id="profilePageTotalDownloads">0</div>
+                        <div class="stat-label" data-lang="totalDownloads">Total Downloads</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-value" id="profilePageFreeDownloads">0</div>
+                        <div class="stat-label" data-lang="freeDownloads">Free Downloads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="9" cy="21" r="1"></circle>
                                 <circle cx="20" cy="21" r="1"></circle>
                                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
                         </div>
-                        <div class="stat-value" id="purchaseCount">0</div>
-                        <div class="stat-label" data-lang="purchases">Purchases</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                            </svg>
-                        </div>
-                        <div class="stat-value" id="freeCount">0</div>
-                        <div class="stat-label" data-lang="freeCourses">Free Courses</div>
+                        <div class="stat-value" id="profilePagePaidDownloads">0</div>
+                        <div class="stat-label" data-lang="paidDownloads">Paid Downloads</div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Wallet Section -->
-            <div class="section-header" style="margin-top: 30px;">
-                <h2 class="section-title" data-lang="addMoney">Wallet</h2>
-            </div>
-            <div class="profile-card">
-                 <button class="btn btn-primary" onclick="openPaymentModal()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="1" y="4" width="22" height="16" rx="2 ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
+
+                <button class="btn btn-secondary mt-4" onclick="logout()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
-                    Add Money
+                    <span data-lang="logout">Logout</span>
                 </button>
             </div>
         </section>
@@ -1847,6 +2060,31 @@
         </section>
     </main>
 
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-nav="home" onclick="navigateTo('home')">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span data-lang="home">Home</span>
+        </button>
+        <button class="nav-item" data-nav="wallet" onclick="navigateTo('wallet')">
+            <svg viewBox="0 0 24 24">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <span data-lang="wallet">Wallet</span>
+        </button>
+        <button class="nav-item" data-nav="profile" onclick="navigateTo('profile')">
+            <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span data-lang="profile">Profile</span>
+        </button>
+    </nav>
+
     <!-- Full Screen Course View (iOS Style) -->
     <div class="course-fullscreen" id="courseFullScreen">
         <div class="course-fs-header">
@@ -1869,18 +2107,6 @@
                 </svg>
                 <span id="fsActionText">Download</span>
             </button>
-        </div>
-    </div>
-    
-    <!-- Promo Popup Modal -->
-    <div class="promo-popup-overlay" id="promoPopup">
-        <div class="promo-popup-card">
-            <div id="promoPopupTimer" class="promo-popup-timer">5s</div>
-            <button class="promo-popup-close" id="promoPopupCloseBtn" disabled onclick="closePromoPopup()">✕</button>
-            <img src="" alt="Promotion" class="promo-popup-img" id="promoPopupImg">
-            <div class="promo-popup-body">
-                <h3 class="promo-popup-title" id="promoPopupTitle"></h3>
-            </div>
         </div>
     </div>
 
@@ -1936,11 +2162,12 @@
                     <form id="paymentForm">
                         <div class="form-group">
                             <label class="form-label">Amount (BDT)</label>
-                            <input type="number" class="form-input" id="payAmount" placeholder="Enter amount" required>
+                            <input type="number" class="form-input" id="payAmount" placeholder="Enter amount" min="1" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Sender Number</label>
-                            <input type="text" class="form-input" id="paySenderNumber" placeholder="Number you sent from" required>
+                            <input type="text" class="form-input" id="paySenderNumber" placeholder="11 digit number" pattern="[0-9]{11}" maxlength="11" required>
+                            <small class="text-muted">Must be 11 digits</small>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Transaction ID</label>
@@ -1972,7 +2199,22 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" data-lang="password">Password</label>
-                        <input type="password" class="form-input" id="authPassword" placeholder="Min 6 characters" required>
+                        <div class="password-wrapper">
+                            <input type="password" class="form-input" id="authPassword" placeholder="Min 6 characters" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('authPassword', this)">
+                                <svg class="eye-open" viewBox="0 0 24 24" style="display: none;">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-closed" viewBox="0 0 24 24">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="forgot-password">
+                        <a onclick="handleForgotPassword()">Forgot Password?</a>
                     </div>
                     <button type="submit" class="btn btn-primary" id="authSubmit">
                         <span data-lang="login">Login</span>
@@ -2003,6 +2245,17 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // Initialize Firebase Messaging
+        let messaging = null;
+        try {
+            messaging = firebase.messaging();
+        } catch (e) {
+            console.log('Messaging not supported');
+        }
+
+        // VAPID Key
+        const VAPID_KEY = 'BI6ukSgVufgHRGBVALSUPhLXz9nmtVJEaoqwPF5TBuULEZLCQuHHFyg1fR89bPfkfcrZsSp_8zhot56ZwIqFOmQ';
+
         // Set Persistence
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
 
@@ -2021,7 +2274,14 @@
                 moneyAdded: "Money Added", coursePurchased: "Course Purchased",
                 courseDownloaded: "Course Downloaded", noCourses: "No courses available",
                 noNotifications: "No notifications yet", all: "All",
-                requestSent: "Request submitted. Wait for approval.", copied: "Copied!"
+                requestSent: "Request submitted. Wait for approval.", copied: "Copied!",
+                totalDownloads: "Total Downloads", freeDownloads: "Free Downloads",
+                paidDownloads: "Paid Downloads", wallet: "Wallet", logout: "Logout",
+                addMoneyBtn: "Add Money", profileInfo: "Profile Information",
+                forgotPassword: "Forgot Password?", resetEmailSent: "Password reset email sent!",
+                emailNotFound: "Email not found", invalidEmail: "Please enter a valid email",
+                paymentAccepted: "Payment Accepted", paymentRejected: "Payment Rejected",
+                newCourse: "New Course Added", currentBalance: "Current Balance"
             },
             bn: {
                 home: "হোম", profile: "প্রোফাইল", notifications: "নোটিফিকেশন", settings: "সেটিংস",
@@ -2036,7 +2296,14 @@
                 moneyAdded: "টাকা যোগ হয়েছে", coursePurchased: "কোর্স কেনা হয়েছে",
                 courseDownloaded: "কোর্স ডাউনলোড হয়েছে", noCourses: "কোন কোর্স নেই",
                 noNotifications: "কোন নোটিফিকেশন নেই", all: "সব",
-                requestSent: "অনুরোধ জমা হয়েছে। অনুমোদনের জন্য অপেক্ষা করুন।", copied: "কপি হয়েছে!"
+                requestSent: "অনুরোধ জমা হয়েছে। অনুমোদনের জন্য অপেক্ষা করুন।", copied: "কপি হয়েছে!",
+                totalDownloads: "মোট ডাউনলোড", freeDownloads: "ফ্রি ডাউনলোড",
+                paidDownloads: "পেইড ডাউনলোড", wallet: "ওয়ালেট", logout: "লগআউট",
+                addMoneyBtn: "টাকা যোগ করুন", profileInfo: "প্রোফাইল তথ্য",
+                forgotPassword: "পাসওয়ার্ড ভুলে গেছেন?", resetEmailSent: "পাসওয়ার্ড রিসেট ইমেইল পাঠানো হয়েছে!",
+                emailNotFound: "ইমেইল পাওয়া যায়নি", invalidEmail: "বৈধ ইমেইল দিন",
+                paymentAccepted: "পেমেন্ট গৃহীত হয়েছে", paymentRejected: "পেমেন্ট বাতিল হয়েছে",
+                newCourse: "নতুন কোর্স যুক্ত হয়েছে", currentBalance: "বর্তমান ব্যালেন্স"
             }
         };
 
@@ -2053,6 +2320,7 @@
         let selectedPaymentMethod = null;
         let currentPage = 'home';
         let themeSettings = {};
+        let promoData = null;
 
         // DOM Elements
         const loadingScreen = document.getElementById('loadingScreen');
@@ -2070,12 +2338,17 @@
         const toast = document.getElementById('toast');
         const mainContent = document.getElementById('mainContent');
         const announcementBar = document.getElementById('announcementBar');
+        const promoBanner = document.getElementById('promoBanner');
+        const popupPromo = document.getElementById('popupPromo');
+        const bottomNav = document.getElementById('bottomNav');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             setupEventListeners();
             loadSettings();
             checkConnection();
+            initMessaging();
+            initRealtimeListeners();
         });
 
         // ==========================================
@@ -2110,7 +2383,9 @@
                     loadCourses(),
                     loadAnnouncement(),
                     loadPaymentMethods(),
-                    initThemeListener()
+                    initThemeListener(),
+                    loadPromoBanner(),
+                    loadPopupPromo()
                 ]);
                 observeCourses();
             } catch (error) {
@@ -2118,87 +2393,102 @@
             } finally {
                 setTimeout(() => {
                     loadingScreen.classList.add('hidden');
-                    // Trigger Promo Popup after loading screen hides
-                    loadPromoPopup();
                 }, 800);
             }
         }
 
         // ==========================================
-        // FEATURE: NEW POPUP PROMOTIONAL SYSTEM
+        // FEATURE: POPUP PROMOTION BANNER
         // ==========================================
-
-        let promoPopupTimer = null;
-
-        function loadPromoPopup() {
-            db.collection('settings').doc('popup').onSnapshot(doc => {
+        
+        function loadPopupPromo() {
+            db.collection('settings').doc('popup_promo').onSnapshot(doc => {
                 if (doc.exists && doc.data().active) {
                     const data = doc.data();
-                    if(data.thumbnail && data.title) {
-                        showPromoPopup(data);
+                    if (data.thumbnail && data.title) {
+                        showPopupPromo(data);
                     }
                 }
             });
         }
 
-        function showPromoPopup(data) {
-            const popup = document.getElementById('promoPopup');
-            const img = document.getElementById('promoPopupImg');
-            const title = document.getElementById('promoPopupTitle');
-            const closeBtn = document.getElementById('promoPopupCloseBtn');
-            const timerDisplay = document.getElementById('promoPopupTimer');
-
-            img.src = data.thumbnail;
-            title.textContent = data.title;
-
-            // Handle click on image/title
-            const clickTarget = popup.querySelector('.promo-popup-card'); // Or just image
-            clickTarget.onclick = () => {
-                if(data.link) {
-                    // Open in external browser
-                    window.open(data.link, '_blank');
-                }
-            };
+        function showPopupPromo(data) {
+            document.getElementById('popupPromoImg').src = data.thumbnail;
+            document.getElementById('popupPromoTitle').textContent = data.title;
+            popupPromo.classList.add('active');
             
-            // Exclude close button from the click event above
-            closeBtn.onclick = (e) => {
-                e.stopPropagation();
-                if(!closeBtn.disabled) closePromoPopup();
-            };
-
-            // Show popup
-            popup.classList.add('active');
-            
-            // Timer Logic
-            let secondsLeft = 5;
-            closeBtn.disabled = true;
-            timerDisplay.textContent = secondsLeft + 's';
-            timerDisplay.style.display = 'block';
-            closeBtn.style.display = 'none'; // Hide X button until time is up, or show disabled. 
-            // Let's show the timer in place of the X for cleaner UX
-
-            promoPopupTimer = setInterval(() => {
-                secondsLeft--;
-                timerDisplay.textContent = secondsLeft + 's';
-                
-                if (secondsLeft <= 0) {
-                    clearInterval(promoPopupTimer);
-                    closeBtn.disabled = false;
-                    timerDisplay.style.display = 'none';
-                    closeBtn.style.display = 'flex'; // Show X button now
-                }
-            }, 1000);
+            // Auto close after 5 seconds
+            setTimeout(closePopupPromo, 5000);
         }
 
-        function closePromoPopup() {
-            const popup = document.getElementById('promoPopup');
-            popup.classList.remove('active');
-            if(promoPopupTimer) clearInterval(promoPopupTimer);
+        function closePopupPromo() {
+            popupPromo.classList.remove('active');
+        }
+
+        // ==========================================
+        // FEATURE: PROMO BANNER (Inline)
+        // ==========================================
+        
+        function loadPromoBanner() {
+            db.collection('settings').doc('promo').onSnapshot(doc => {
+                if (doc.exists && doc.data().active) {
+                    const data = doc.data();
+                    if(data.thumbnail && data.title) {
+                        promoData = data;
+                        showPromoBanner(data);
+                        return;
+                    }
+                }
+                hidePromoBanner();
+            });
+        }
+
+        function showPromoBanner(data) {
+            document.getElementById('promoBannerImg').src = data.thumbnail;
+            document.getElementById('promoBannerTitle').textContent = data.title;
+            promoBanner.classList.add('active');
+        }
+
+        function hidePromoBanner() {
+            promoBanner.classList.remove('active');
+        }
+
+        function handlePromoClick() {
+            if(promoData && promoData.link) {
+                window.open(promoData.link, '_blank');
+            }
         }
 
         // ==========================================
         // FEATURE: REALTIME THEME & FONT UPDATE
         // ==========================================
+
+        function initRealtimeListeners() {
+            // Listen for payment requests status changes
+            db.collection('money_requests').where('status', 'in', ['accepted', 'rejected'])
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'modified' && change.doc.data().userId === currentUser?.uid) {
+                            const data = change.doc.data();
+                            sendNotification(
+                                data.status === 'accepted' ? 'payment_accepted' : 'payment_rejected',
+                                { amount: data.amount }
+                            );
+                        }
+                    });
+                });
+
+            // Listen for new courses
+            db.collection('courses').where('visible', '==', true)
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const course = change.doc.data();
+                            sendNotification('new_course', { courseName: course.title });
+                        }
+                    });
+                });
+        }
 
         function initThemeListener() {
             db.collection('settings').doc('theme').onSnapshot(doc => {
@@ -2276,6 +2566,129 @@
         }
 
         // ==========================================
+        // FEATURE: PUSH NOTIFICATIONS
+        // ==========================================
+
+        async function initMessaging() {
+            if (!messaging) return;
+            
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+                    console.log('FCM Token:', token);
+                    
+                    // Save token to user document
+                    if (currentUser) {
+                        await db.collection('users').doc(currentUser.uid).update({
+                            fcmToken: token
+                        });
+                    }
+                }
+            } catch (error) {
+                console.log('Notification permission denied');
+            }
+
+            // Handle foreground messages
+            messaging.onMessage((payload) => {
+                showNotification(payload);
+            });
+        }
+
+        function showNotification(payload) {
+            const { title, body, click_action } = payload.data || payload.notification;
+            
+            // Show browser notification
+            if (Notification.permission === 'granted') {
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: '/icon.png'
+                });
+                
+                notification.onclick = () => {
+                    if (click_action) {
+                        window.open(click_action, '_blank');
+                    }
+                };
+            }
+            
+            // Add to in-app notifications
+            if (currentUser) {
+                db.collection('users').doc(currentUser.uid).update({
+                    notifications: firebase.firestore.FieldValue.arrayUnion({
+                        type: 'push',
+                        text: body,
+                        title: title,
+                        link: click_action,
+                        timestamp: Date.now()
+                    })
+                });
+            }
+        }
+
+        function sendNotification(type, data) {
+            const notificationData = getNotificationContent(type, data);
+            
+            // Send via FCM
+            if (messaging && currentUser?.fcmToken) {
+                fetch('https://fcm.googleapis.com/fcm/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `key=${VAPID_KEY}`
+                    },
+                    body: JSON.stringify({
+                        to: currentUser.fcmToken,
+                        notification: {
+                            title: notificationData.title,
+                            body: notificationData.body,
+                            click_action: notificationData.link
+                        },
+                        data: notificationData
+                    })
+                }).catch(console.error);
+            }
+
+            // Add to Firestore
+            if (currentUser) {
+                db.collection('users').doc(currentUser.uid).update({
+                    notifications: firebase.firestore.FieldValue.arrayUnion({
+                        type: type,
+                        text: notificationData.body,
+                        title: notificationData.title,
+                        link: notificationData.link,
+                        timestamp: Date.now()
+                    })
+                });
+            }
+        }
+
+        function getNotificationContent(type, data) {
+            const lang = currentLanguage;
+            let title, body, link = '#';
+            
+            switch(type) {
+                case 'payment_accepted':
+                    title = lang === 'bn' ? 'পেমেন্ট গৃহীত হয়েছে' : 'Payment Accepted';
+                    body = lang === 'bn' ? `${data.amount} টাকা আপনার ওয়ালেটে যোগ হয়েছে` : `${data.amount} BDT added to your wallet`;
+                    link = '/profile';
+                    break;
+                case 'payment_rejected':
+                    title = lang === 'bn' ? 'পেমেন্ট বাতিল হয়েছে' : 'Payment Rejected';
+                    body = lang === 'bn' ? `${data.amount} টাকার পেমেন্ট বাতিল হয়েছে` : `Payment of ${data.amount} BDT was rejected`;
+                    link = '/profile';
+                    break;
+                case 'new_course':
+                    title = lang === 'bn' ? 'নতুন কোর্স' : 'New Course';
+                    body = lang === 'bn' ? `"${data.courseName}" কোর্সটি যুক্ত হয়েছে` : `"${data.courseName}" has been added`;
+                    link = '/courses';
+                    break;
+            }
+            
+            return { title, body, link };
+        }
+
+        // ==========================================
         // CORE APP LOGIC
         // ==========================================
 
@@ -2297,14 +2710,20 @@
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const page = item.dataset.page;
-                    if (page) showPage(page);
+                    if (page) {
+                        if (page === 'profile') {
+                            navigateTo('profile'); // Three-line menu profile goes to profile page
+                        } else {
+                            navigateTo(page);
+                        }
+                    }
                     closeMenu();
                 });
             });
 
             // Auth
             document.getElementById('authMenuItem').addEventListener('click', () => { openAuthModal(); closeMenu(); });
-            document.getElementById('logoutMenuItem').addEventListener('click', () => { auth.signOut(); closeMenu(); });
+            document.getElementById('logoutMenuItem').addEventListener('click', () => { logout(); closeMenu(); });
 
             // Auth tabs
             document.querySelectorAll('.auth-tab').forEach(tab => {
@@ -2373,6 +2792,110 @@
             applyFontToBody();
         }
 
+        function navigateTo(page) {
+            currentPage = page;
+            
+            // Update bottom nav active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.nav === page);
+            });
+
+            // Hide all pages first
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('walletPage').style.display = 'none';
+            document.getElementById('profilePage').style.display = 'none';
+            document.getElementById('notificationsPage').style.display = 'none';
+            document.getElementById('settingsPage').style.display = 'none';
+
+            // Show selected page
+            switch(page) {
+                case 'home':
+                    document.getElementById('homePage').style.display = 'block';
+                    renderCourses();
+                    break;
+                case 'wallet':
+                    document.getElementById('walletPage').style.display = 'block';
+                    loadWalletData();
+                    break;
+                case 'profile':
+                    document.getElementById('profilePage').style.display = 'block';
+                    loadProfileData();
+                    break;
+                case 'notifications':
+                    document.getElementById('notificationsPage').style.display = 'block';
+                    loadNotifications();
+                    break;
+                case 'settings':
+                    document.getElementById('settingsPage').style.display = 'block';
+                    break;
+            }
+
+            updateAnnouncementBarVisibility();
+        }
+
+        function loadWalletData() {
+            if (!currentUser || !userData) return;
+            document.getElementById('walletPageBalance').textContent = (userData.wallet || 0) + ' BDT';
+        }
+
+        function loadProfileData() {
+            if (!currentUser || !userData) return;
+            
+            document.getElementById('profilePageName').textContent = userData.name || 'Not set';
+            
+            // Mask email for security
+            const email = currentUser.email;
+            const maskedEmail = maskEmail(email);
+            document.getElementById('profilePageEmail').textContent = maskedEmail;
+            
+            const totalDownloads = downloadedCourses.length;
+            const freeDownloads = downloadedCourses.filter(id => {
+                const c = courses.find(x => x.id === id);
+                return c && c.price === 0;
+            }).length;
+            const paidDownloads = totalDownloads - freeDownloads;
+            
+            document.getElementById('profilePageTotalDownloads').textContent = totalDownloads;
+            document.getElementById('profilePageFreeDownloads').textContent = freeDownloads;
+            document.getElementById('profilePagePaidDownloads').textContent = paidDownloads;
+        }
+
+        function maskEmail(email) {
+            if (!email) return 'Not set';
+            const [localPart, domain] = email.split('@');
+            if (localPart.length <= 2) return email;
+            return localPart.substring(0, 2) + '**@' + domain;
+        }
+
+        function updateProfileStats() {
+            if (!userData) return;
+            
+            // Update both profile pages
+            if (document.getElementById('profilePageName')) {
+                document.getElementById('profilePageName').textContent = userData.name || 'Not set';
+            }
+            
+            const totalDownloads = downloadedCourses.length;
+            const freeDownloads = downloadedCourses.filter(id => {
+                const c = courses.find(x => x.id === id);
+                return c && c.price === 0;
+            }).length;
+            const paidDownloads = totalDownloads - freeDownloads;
+            
+            document.getElementById('profilePageTotalDownloads').textContent = totalDownloads;
+            document.getElementById('profilePageFreeDownloads').textContent = freeDownloads;
+            document.getElementById('profilePagePaidDownloads').textContent = paidDownloads;
+            
+            // Update wallet balance
+            document.getElementById('walletPageBalance').textContent = (userData.wallet || 0) + ' BDT';
+        }
+
+        function logout() {
+            auth.signOut();
+            navigateTo('home');
+            showToast('Logged out successfully', 'success');
+        }
+
         // Payment Methods
         async function loadPaymentMethods() {
             try {
@@ -2392,7 +2915,7 @@
         function renderPaymentMethods() {
             const container = document.getElementById('paymentMethods');
             container.innerHTML = paymentMethods.map((method, index) => `
-                <button class="payment-method-btn ${index === 0 ? 'active' : ''}" data-method="${method.id}" onclick="selectPaymentMethod('${method.id}')" style="--p-color: ${method.color || '#10b981'}">
+                <button type="button" class="payment-method-btn ${index === 0 ? 'active' : ''}" data-method="${method.id}" onclick="selectPaymentMethod('${method.id}')" style="--p-color: ${method.color || '#10b981'}">
                     <img src="${method.logo}" alt="${method.name}">
                 </button>
             `).join('');
@@ -2401,7 +2924,11 @@
 
         function selectPaymentMethod(methodId) {
             selectedPaymentMethod = paymentMethods.find(m => m.id === methodId);
-            document.querySelectorAll('.payment-method-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.method === methodId));
+            
+            // Update Active UI
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.method === methodId);
+            });
             
             if (selectedPaymentMethod) {
                 const color = selectedPaymentMethod.color || '#10b981';
@@ -2450,15 +2977,35 @@
         async function handlePaymentSubmit(e) {
             e.preventDefault();
             if (!selectedPaymentMethod) { showToast('Select a payment method', 'error'); return; }
+            
             const amount = document.getElementById('payAmount').value;
             const sender = document.getElementById('paySenderNumber').value;
             const transId = document.getElementById('payTransId').value;
 
+            // Validation
+            if (amount <= 0) {
+                showToast('Amount must be greater than 0', 'error');
+                return;
+            }
+            
+            if (!/^\d{11}$/.test(sender)) {
+                showToast('Sender number must be 11 digits', 'error');
+                return;
+            }
+
+            const methodName = selectedPaymentMethod.name || selectedPaymentMethod.id.charAt(0).toUpperCase() + selectedPaymentMethod.id.slice(1);
+
             try {
                 await db.collection('money_requests').add({
-                    userId: currentUser.uid, userName: userData?.name || currentUser.email, userEmail: currentUser.email,
-                    amount: parseFloat(amount), methodId: selectedPaymentMethod.id, methodName: selectedPaymentMethod.name,
-                    senderNumber: sender, transactionId: transId, status: 'pending',
+                    userId: currentUser.uid, 
+                    userName: userData?.name || currentUser.email, 
+                    userEmail: currentUser.email,
+                    amount: parseFloat(amount), 
+                    methodId: selectedPaymentMethod.id, 
+                    methodName: methodName,
+                    senderNumber: sender, 
+                    transactionId: transId, 
+                    status: 'pending',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 showToast(translations[currentLanguage].requestSent, 'success');
@@ -2554,7 +3101,21 @@
         async function loadAnnouncement() {
             try {
                 const doc = await db.collection('settings').doc('announcement').get();
-                if (doc.exists) document.getElementById('announcementText').textContent = doc.data().text;
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('announcementText').textContent = data.text;
+                    
+                    // FIX: Make announcement bar clickable if link exists
+                    if (data.link) {
+                        announcementBar.style.cursor = 'pointer';
+                        announcementBar.onclick = () => {
+                            window.open(data.link, '_blank');
+                        };
+                    } else {
+                        announcementBar.style.cursor = 'default';
+                        announcementBar.onclick = null;
+                    }
+                }
             } catch (error) { console.log('Default announcement'); }
         }
 
@@ -2562,19 +3123,25 @@
         function handleAuthState(user) {
             currentUser = user;
             const isUser = !!user;
+            
             document.getElementById('authMenuItem').style.display = isUser ? 'none' : 'flex';
             document.getElementById('logoutMenuItem').style.display = isUser ? 'flex' : 'none';
             document.getElementById('profileMenuItem').style.display = isUser ? 'flex' : 'none';
             document.getElementById('notifMenuItem').style.display = isUser ? 'flex' : 'none';
-            document.getElementById('menuGreeting').textContent = isUser ? translations[currentLanguage].welcomeBack : translations[currentLanguage].welcomeBack;
-            document.getElementById('menuUserEmail').textContent = isUser ? user.email : translations[currentLanguage].signInContinue;
             
             if (isUser) {
+                const maskedEmail = maskEmail(user.email);
+                document.getElementById('menuGreeting').textContent = translations[currentLanguage].welcomeBack;
+                document.getElementById('menuUserEmail').textContent = maskedEmail;
                 loadUserData();
+                initMessaging(); // Re-initialize messaging with user
             } else {
+                document.getElementById('menuGreeting').textContent = translations[currentLanguage].welcomeBack;
+                document.getElementById('menuUserEmail').textContent = translations[currentLanguage].signInContinue;
                 userData = null;
                 purchasedCourses = [];
                 downloadedCourses = [];
+                updateProfileStats();
             }
         }
 
@@ -2590,17 +3157,6 @@
                     loadNotifications();
                 }
             } catch (e) { console.error(e); }
-        }
-
-        function updateProfileStats() {
-            if (!userData) return;
-            document.getElementById('downloadCount').textContent = downloadedCourses.length;
-            document.getElementById('walletBalance').textContent = (userData.wallet || 0) + ' BDT';
-            document.getElementById('purchaseCount').textContent = purchasedCourses.length;
-            document.getElementById('freeCount').textContent = downloadedCourses.filter(id => {
-                const c = courses.find(x => x.id === id);
-                return c && c.price === 0;
-            }).length;
         }
 
         async function handleAuth(e) {
@@ -2624,6 +3180,48 @@
                 }
                 closeAuthModal();
             } catch (error) { showToast(error.message, 'error'); }
+        }
+
+        async function handleForgotPassword() {
+            const email = prompt(translations[currentLanguage].email);
+            if (!email) return;
+            
+            if (!email.includes('@') || !email.includes('.')) {
+                showToast(translations[currentLanguage].invalidEmail, 'error');
+                return;
+            }
+            
+            try {
+                // Check if email exists
+                const methods = await auth.fetchSignInMethodsForEmail(email);
+                if (methods.length === 0) {
+                    showToast(translations[currentLanguage].emailNotFound, 'error');
+                    return;
+                }
+                
+                await auth.sendPasswordResetEmail(email);
+                showToast(translations[currentLanguage].resetEmailSent, 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Password Toggle
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            
+            if (type === 'text') {
+                eyeOpen.style.display = 'block';
+                eyeClosed.style.display = 'none';
+            } else {
+                eyeOpen.style.display = 'none';
+                eyeClosed.style.display = 'block';
+            }
         }
 
         // Modals
@@ -2675,7 +3273,7 @@
             if ((userData?.wallet || 0) < course.price) {
                 showToast(translations[currentLanguage].addToWallet, 'error');
                 closeCourseFullScreen();
-                showPage('profile');
+                navigateTo('wallet');
                 return;
             }
 
@@ -2684,7 +3282,9 @@
                     wallet: firebase.firestore.FieldValue.increment(-course.price),
                     purchases: firebase.firestore.FieldValue.arrayUnion(course.id),
                     notifications: firebase.firestore.FieldValue.arrayUnion({
-                        type: 'purchase', text: `${translations[currentLanguage].coursePurchased}: ${course.title}`, timestamp: Date.now()
+                        type: 'purchase', 
+                        text: `${translations[currentLanguage].coursePurchased}: ${course.title}`, 
+                        timestamp: Date.now()
                     })
                 });
                 purchasedCourses.push(course.id);
@@ -2705,7 +3305,9 @@
                         await db.collection('users').doc(currentUser.uid).update({
                             downloads: firebase.firestore.FieldValue.arrayUnion(course.id),
                             notifications: firebase.firestore.FieldValue.arrayUnion({
-                                type: 'download', text: `${translations[currentLanguage].courseDownloaded}: ${course.title}`, timestamp: Date.now()
+                                type: 'download', 
+                                text: `${translations[currentLanguage].courseDownloaded}: ${course.title}`, 
+                                timestamp: Date.now()
                             })
                         });
                         downloadedCourses.push(course.id);
@@ -2729,7 +3331,7 @@
                     return;
                 }
                 container.innerHTML = notifs.sort((a,b) => b.timestamp - a.timestamp).map(n => `
-                    <div class="notification-item">
+                    <div class="notification-item" onclick="handleNotificationClick('${n.link || '#'}')">
                         <div class="notification-icon">${getNotificationIcon(n.type)}</div>
                         <div class="notification-content">
                             <div class="notification-text">${n.text}</div>
@@ -2740,23 +3342,25 @@
             } catch (e) { console.error(e); }
         }
 
+        function handleNotificationClick(link) {
+            if (link && link !== '#') {
+                window.open(link, '_blank');
+            }
+        }
+
         function getNotificationIcon(type) {
             const icons = {
                 purchase: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>',
                 download: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
-                deposit: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2 ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>'
+                deposit: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2 ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>',
+                push: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>'
             };
             return icons[type] || icons.purchase;
         }
 
-        function formatTime(ts) { const d = new Date(ts); return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
-
-        function showPage(page) {
-            currentPage = page;
-            ['home', 'profile', 'notifications', 'settings'].forEach(p => document.getElementById(p + 'Page').style.display = p === page ? 'block' : 'none');
-            updateAnnouncementBarVisibility();
-            if (page === 'notifications') loadNotifications();
-            if (page === 'home') renderCourses();
+        function formatTime(ts) { 
+            const d = new Date(ts); 
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); 
         }
 
         function observeCourses() {
@@ -2779,10 +3383,27 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                closeMenu(); closeSearch(); closeCourseFullScreen(); closeAuthModal(); closePaymentModal(); closePromoPopup();
+                closeMenu(); closeSearch(); closeCourseFullScreen(); closeAuthModal(); closePaymentModal(); closePopupPromo();
+            }
+        });
+
+        // Performance optimization: lazy load images
+        document.addEventListener('DOMContentLoaded', () => {
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            img.classList.remove('lazy');
+                            imageObserver.unobserve(img);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('img[data-src]').forEach(img => imageObserver.observe(img));
             }
         });
     </script>
-    <script>(function(s){s.dataset.zone='10581661',s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 </body>
 </html>
